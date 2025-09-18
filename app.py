@@ -88,11 +88,12 @@ def render_tool_button(label: str, icon: str, url: str) -> str:
 
 def render_tool_buttons_row():
     st.subheader("Internal tools")
+    st.markdown("⚠️ *Some tools are hosted on free platforms and may take a minute to load when waking up. This saves us €90/year per tool. Please wait patiently and reload the site if nothing happens.*")
     buttons_html = ""
     buttons_html += render_tool_button("Member platform", "📊", "https://fund.investialeuven.be")
     buttons_html += render_tool_button("Member Drive", "📂", "https://drive.google.com/drive/folders/1VfsWiHpd1oS8lM5YK4j2ik-3WPiuvNWV?usp=share_link")
-    buttons_html += render_tool_button("Industry scanner", "🔍", "https://industry.investialeuven.be")
-    buttons_html += render_tool_button("Stock alert", "📈", "https://analyst.investialeuven.be")
+    buttons_html += render_tool_button("Industry scanner", "🔍", "https://industry.streamlit.app")
+    buttons_html += render_tool_button("Stock alert", "📈", "https://analyst-investia.streamlit.app")
     buttons_html += render_tool_button("Investia website", "🌐", "https://investialeuven.be")
     buttons_html += render_tool_button("Treasurer budget", "💲", "https://accounting-investia.streamlit.app")
 
