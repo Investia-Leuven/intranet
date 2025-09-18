@@ -116,7 +116,11 @@ def render_announcement_feed():
 
     st.subheader("Announcements")
 
-    messages = fetch_messages(limit=4)
+    @st.cache_data(ttl=10)
+    def get_cached_messages():
+        return fetch_messages(limit=4)
+
+    messages = get_cached_messages()
     messages.reverse()
 
     with st.container():
