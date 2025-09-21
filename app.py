@@ -7,7 +7,6 @@ import logging
 from dotenv import load_dotenv
 
 from lib.auth import login_screen
-from lib.backend import get_member_name
 from lib.config import CALENDAR_URL_FULL, CALENDAR_URL_AGENDA, TOOL_LINKS
 
 from lib.ui.header import render_header
