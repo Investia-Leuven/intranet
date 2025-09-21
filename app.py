@@ -40,7 +40,7 @@ def load_environment():
 def main():
     """Main function to assemble and display the intranet interface."""
     logger.info("App started")
-    st.set_page_config(page_title="Investia Stock Alert", page_icon="extra/investia_favicon.png", layout="wide")
+    st.set_page_config(page_title="Investia Intranet", page_icon="extra/investia_favicon.png", layout="wide")
 
     load_environment()
     logger.info("Environment loaded")
