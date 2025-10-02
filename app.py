@@ -15,7 +15,7 @@ from lib.ui.tools import render_internal_tools_section
 from lib.ui.calendar import render_calendar_section
 from lib.ui.announcements import render_announcement_section
 from lib.ui.news import render_news_section
-
+ 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
