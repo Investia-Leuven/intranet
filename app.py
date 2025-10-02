@@ -18,7 +18,7 @@ from lib.ui.news import render_news_section
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
+ 
 def require_auth(func):
     """Decorator to enforce authentication before accessing a function."""
     def wrapper(*args, **kwargs):
