@@ -45,6 +45,11 @@ def render_header():
             unsafe_allow_html=True
         )
     with col3:
-        if st.button("Logout", use_container_width=True):
-            st.session_state.authenticated = False
-            st.rerun()
+        colA, colB = st.columns([1,1])
+        with colA:
+            if st.button("Settings"): 
+                st.session_state.page = "settings"; st.rerun()
+        with colB:
+            if st.button("Logout", use_container_width=True):
+                st.session_state.authenticated = False
+                st.rerun()

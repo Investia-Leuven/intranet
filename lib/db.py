@@ -1,6 +1,6 @@
-"""Database functions for feed message operations via Supabase.
+"""Supabase interaction functions for feed messages and user authentication.
 
-This module provides functions to interact with the Supabase backend for managing
+This module contains all functions that interact with the Supabase backend to manage
 feed messages and user authentication data. It includes operations to insert,
 fetch, and delete feed messages, as well as retrieve and update member information
 such as password hashes and reset codes.
@@ -18,6 +18,8 @@ SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+# ====================== Feed Message Functions ======================
 
 def insert_message(user_id: str, username: str, message: str):
     """
@@ -48,6 +50,7 @@ def fetch_messages(limit: int = 10):
 
     Returns up to 'limit' most recent messages for display in the feed.
     """
+    # Query the latest messages ordered by descending creation time, limited by 'limit'
     response = supabase.table("intranet_feed_messages").select("*").order("created_at", desc=True).limit(limit).execute()
     return response.data if response.data else []
 
@@ -57,8 +60,11 @@ def delete_message_by_id(message_id: str):
 
     Used internally to remove old messages when enforcing the message limit.
     """
+    # Delete the message matching the given ID
     return supabase.table("intranet_feed_messages").delete().eq("id", message_id).execute()
 
+
+# ====================== Authentication & Member Functions ======================
 
 def get_member_by_username(username: str) -> Optional[Member]:
     """
@@ -67,25 +73,28 @@ def get_member_by_username(username: str) -> Optional[Member]:
     Queries the 'authentication' table for a user matching the given username.
     Returns a Member object if found, otherwise None.
     """
+    # Query the authentication table for the username
     resp = (
         supabase.table("authentication")
         .select("username, name, email, is_admin, password, reset_code")
         .eq("username", username)
-        .single()  # Expecting a single record
         .execute()
     )
     data = getattr(resp, "data", None)
     if not data:
         return None
 
+    # Use the first record found for the given username
+    record = data[0]
+
     # Construct and return a Member instance with the retrieved data
     return Member(
-        username=data["username"],
-        name=data["name"],
-        email=data["email"],
-        is_admin=data["is_admin"],
-        password_hash=data["password"],
-        reset_code=data.get("reset_code"),
+        username=record["username"],
+        name=record["name"],
+        email=record["email"],
+        is_admin=record["is_admin"],
+        password_hash=record["password"],
+        reset_code=record.get("reset_code"),
     )
 
 def get_member_by_full_name(full_name: str) -> Optional[Member]:
@@ -95,6 +104,7 @@ def get_member_by_full_name(full_name: str) -> Optional[Member]:
     Queries the 'authentication' table for users with the matching full name.
     Returns the first matching Member object or None if no match is found.
     """
+    # Query the authentication table for the full name
     resp = (
         supabase.table("authentication")
         .select("username, name, email, is_admin, password, reset_code")
@@ -126,6 +136,7 @@ def set_reset_code(username: str, code: str) -> bool:
     This is used during password recovery to store a reset code that can be verified later.
     Returns True if the update was successful.
     """
+    # Update the reset_code field for the user with the given username
     resp = (
         supabase.table("authentication")
         .update({"reset_code": code})
@@ -142,6 +153,7 @@ def update_password(username: str, new_hash: str) -> bool:
     Used when a user changes or resets their password.
     Returns True if the update was successful.
     """
+    # Update the password field for the user with the given username
     resp = (
         supabase.table("authentication")
         .update({"password": new_hash})
@@ -149,3 +161,115 @@ def update_password(username: str, new_hash: str) -> bool:
         .execute()
     )
     return resp.data is not None
+
+
+# --- Settings page helper functions ---
+
+def update_username(old_username: str, new_username: str) -> bool:
+    """
+    Update the username (nickname) for a user.
+    Returns True if the update succeeded.
+    """
+    # Update the username from old_username to new_username
+    resp = (
+        supabase.table("authentication")
+        .update({"username": new_username})
+        .eq("username", old_username)
+        .execute()
+    )
+    return resp.data is not None
+
+
+def update_email(username: str, new_email: str) -> bool:
+    """
+    Update the email address for a user.
+    Returns True if the update succeeded.
+    """
+    # Update the email for the given username
+    resp = (
+        supabase.table("authentication")
+        .update({"email": new_email})
+        .eq("username", username)
+        .execute()
+    )
+    return resp.data is not None
+
+
+def update_is_admin(username: str, is_admin: bool) -> bool:
+    """
+    Update the admin flag for a user.
+    Returns True if the update succeeded.
+    """
+    # Update the is_admin flag for the given username
+    resp = (
+        supabase.table("authentication")
+        .update({"is_admin": is_admin})
+        .eq("username", username)
+        .execute()
+    )
+    return resp.data is not None
+
+
+def create_member(username: str, name: str, email: str, is_admin: bool, password_hash: str, reset_code: str) -> bool:
+    """
+    Create a new user in the authentication table.
+    Returns True if the insertion succeeded.
+    """
+    # Insert a new member record into the authentication table
+    resp = (
+        supabase.table("authentication")
+        .insert({
+            "username": username,
+            "name": name,
+            "email": email,
+            "is_admin": is_admin,
+            "password": password_hash,
+            "reset_code": reset_code
+        })
+        .execute()
+    )
+    return resp.data is not None
+
+
+def delete_member(username: str) -> bool:
+    """
+    Delete a user from the authentication table by username.
+    Returns True if the deletion succeeded.
+    """
+    # Delete the member record matching the given username
+    resp = (
+        supabase.table("authentication")
+        .delete()
+        .eq("username", username)
+        .execute()
+    )
+    return resp.data is not None
+
+
+def list_members():
+    """
+    Return a list of all members with their basic info.
+    """
+    # Retrieve all members ordered by name
+    resp = (
+        supabase.table("authentication")
+        .select("username, name, email, is_admin, reset_code")
+        .order("name")
+        .execute()
+    )
+    return resp.data or []
+
+
+def find_members_by_name_like(q: str):
+    """
+    Return members whose names contain the search query (case-insensitive).
+    """
+    # Search for members with names containing the query string (case-insensitive)
+    resp = (
+        supabase.table("authentication")
+        .select("username, name, email, is_admin, reset_code")
+        .ilike("name", f"%{q}%")
+        .order("name")
+        .execute()
+    )
+    return resp.data or []

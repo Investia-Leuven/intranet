@@ -6,9 +6,12 @@ from typing import Optional
 
 """
 This module provides backend utilities for authentication and user information encapsulation.
+
 It includes functions for generating reset codes and a Member class that manages user data,
 password hashing, and reset code handling.
 """
+
+# ====================== Utility Functions ======================
 
 def generate_reset_code() -> str:
     """Return a unique 32-character base64 reset code (URL-safe).
@@ -17,6 +20,8 @@ def generate_reset_code() -> str:
     ensuring it is unique and safe to use in URLs.
     """
     return base64.urlsafe_b64encode(os.urandom(24)).decode('utf-8').rstrip('=')
+
+# ====================== Member Class ======================
 
 class Member:
     """
@@ -63,6 +68,11 @@ class Member:
         """Return the current password reset code if set, else None."""
         return self._reset_code
 
+    @property
+    def password_hash(self):
+        """Return the stored password hash."""
+        return self._password_hash
+
 
     def check_password(self, plain_password: str) -> bool:
         """
@@ -75,14 +85,18 @@ class Member:
         salt_b64 = os.getenv("SALT_B64")
         if not salt_b64:
             return False
+        # Decode the base64-encoded salt
         salt = base64.b64decode(salt_b64)
+        # Compute the hash of the provided password using the salt and iteration count
         hashed = hashlib.pbkdf2_hmac(
             'sha256',
             plain_password.encode('utf-8'),
             salt,
             200000
         )
+        # Encode the hash to base64 string for comparison
         hashed_b64 = base64.b64encode(hashed).decode('utf-8')
+        # Use hmac.compare_digest for secure comparison to prevent timing attacks
         return hmac.compare_digest(hashed_b64, self._password_hash)
 
     def set_password(self, plain_password: str) -> str:
@@ -95,14 +109,19 @@ class Member:
         salt_b64 = os.getenv("SALT_B64")
         if not salt_b64:
             raise ValueError("SALT_B64 environment variable not set")
+        # Decode the base64-encoded salt
         salt = base64.b64decode(salt_b64)
+        # Compute the hash of the password using the salt and iteration count
         hashed = hashlib.pbkdf2_hmac(
             'sha256',
             plain_password.encode('utf-8'),
             salt,
             200000
         )
-        return base64.b64encode(hashed).decode('utf-8')
+        # Encode the hash to base64 string for storage
+        hashed_b64 = base64.b64encode(hashed).decode('utf-8')
+        self._password_hash = hashed_b64
+        return hashed_b64
 
     def set_reset_code(self, code: str):
         """

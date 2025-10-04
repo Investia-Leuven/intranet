@@ -6,15 +6,15 @@ import streamlit as st
 import logging
 from dotenv import load_dotenv
 
-from lib.auth import login_screen
 from lib.config import CALENDAR_URL_FULL, CALENDAR_URL_AGENDA, TOOL_LINKS
-
+from lib.ui.auth import login_screen
 from lib.ui.header import render_header
 from lib.ui.footer import render_footer
 from lib.ui.tools import render_internal_tools_section
 from lib.ui.calendar import render_calendar_section
 from lib.ui.announcements import render_announcement_section
 from lib.ui.news import render_news_section
+from lib.ui.settings import render_settings_page
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -41,6 +41,11 @@ def main():
     """Main function to assemble and display the intranet interface."""
     logger.info("App started")
     st.set_page_config(page_title="Investia Stock Alert", page_icon="extra/investia_favicon.png", layout="wide")
+
+    if "page" not in st.session_state: st.session_state.page = "home"
+    if st.session_state.page == "settings":
+        render_settings_page()
+        return
 
     load_environment()
     logger.info("Environment loaded")
