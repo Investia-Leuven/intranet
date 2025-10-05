@@ -58,7 +58,7 @@ def render_settings_page():
         st.markdown("---")
         st.subheader("Admin section")
 
-        st.subheader("Help a friend out! Get a reset code for a member")
+        st.subheader("Help a friend out! Get a reset code for a member. With this reset code, they can set a new password.")
         members = list_members()
         options = {m["name"]: m["username"] for m in members}
         selected_name = st.selectbox("Select member", [""] + list(options.keys()))
@@ -103,11 +103,12 @@ def render_settings_page():
                             subject="Welcome to the intranet",
                             html_body=f"""
                                 <p>Hi {new_name},</p>
-                                <p>Your account has been created.</p>
+                                <p>Welcome to Investia's digital world! Your account has been created. Find here your login credentials:</p>
                                 <p><b>Username:</b> {username}<br>
                                 <b>Password:</b> {password}<br>
                                 <b>Reset code:</b> {reset_code}</p>
-                                <p>Please log in and change your password.</p>
+                                <p>Please log in and change your password. You can login via the 'FUND' button on the Investia Leuven website.</p>
+                                <p>Enjoy your digital experience!</p>
                                 <p>Kind regards,<br/>Investia</p>
                             """)
                         st.success(f"User created and email sent to {new_email}.")
