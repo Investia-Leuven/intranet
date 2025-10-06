@@ -140,3 +140,20 @@ class Member:
         to prevent reuse.
         """
         self._reset_code = None
+    
+def masked_email(email: str) -> str:
+    """
+    Masks an email address by keeping only the first character of the local part 
+    and replacing the rest with '*', while leaving the domain unchanged.
+    """
+    email = email.strip()
+    if "@" not in email:
+        return email
+
+    local, domain = email.split("@", 1)
+
+    if len(local) <= 1:
+        return local + "@" + domain  # niets te maskeren
+    else:
+        masked_local = local[0] + "*" * (len(local) - 1)
+        return masked_local + "@" + domain

@@ -4,6 +4,7 @@ Handles user login and sets authentication status in Streamlit session state.
 """
 from lib.db import get_member_by_username, get_member_by_full_name, set_reset_code, update_password
 from lib.backend import generate_reset_code
+from lib.backend import masked_email
 from dotenv import load_dotenv
 import streamlit as st
 from lib.send_email import send_reset_email
@@ -83,7 +84,8 @@ def login_screen():
                 if member and member.email:
                     # Send reset code email to member's email address
                     send_reset_email(member.username, member.email, member.reset_code)
-                    st.success(f"An email with a reset code has been sent to {member.email}.")
+                    sensemail = masked_email(member.email)
+                    st.success(f"An email with a reset code has been sent to {sensemail}.")
                 else:
                     # No email on file: instruct user to contact admin
                     st.info("No email on file. Ask an admin for your reset code.")
