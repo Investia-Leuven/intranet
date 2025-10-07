@@ -18,7 +18,7 @@ from lib.ui.settings import render_settings_page
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
+ 
 def require_auth(func):
     """Decorator to enforce authentication before accessing a function."""
     def wrapper(*args, **kwargs):
@@ -40,7 +40,7 @@ def load_environment():
 def main():
     """Main function to assemble and display the intranet interface."""
     logger.info("App started")
-    st.set_page_config(page_title="Investia Stock Alert", page_icon="extra/investia_favicon.png", layout="wide")
+    st.set_page_config(page_title="Investia Intranet", page_icon="extra/investia_favicon.png", layout="wide")
 
     if "page" not in st.session_state: st.session_state.page = "home"
     if st.session_state.page == "settings":
