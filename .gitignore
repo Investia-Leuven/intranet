@@ -1,2 +1,4 @@
 .env
 testing
+__pycache__/
+*.pyc
