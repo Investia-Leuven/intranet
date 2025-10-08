@@ -2,3 +2,5 @@ streamlit
 python-dotenv
 supabase
 pandas
+postgrest
+email-validator
