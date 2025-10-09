@@ -19,6 +19,10 @@ SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
+SUPABASE_ANALYST_URL = os.getenv("SUPABASE_ANALYST_URL")
+SUPABASE_ANALYST_KEY = os.getenv("SUPABASE_ANALYST_KEY")
+supabase_analyst = create_client(SUPABASE_ANALYST_URL, SUPABASE_ANALYST_KEY)
+
 # ====================== Feed Message Functions ======================
 
 def insert_message(user_id: str, username: str, message: str):
