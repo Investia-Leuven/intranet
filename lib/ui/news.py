@@ -42,7 +42,6 @@ def ensure_period(s: str) -> str:
     return s if s.endswith((".", "!", "?")) else (s + "." if s else s)
 
 def is_valid_article(article: dict) -> bool:
-    """Returns False if the article has no proper title or 'No title' placeholder."""
     title = (article.get("title") or "").strip()
     return bool(title and title.lower() != "no title")
 
@@ -141,7 +140,7 @@ def get_portfolio_stocks():
 
 def fetch_yf_company(ticker: str, limit: int = 3):
     try:
-        t = yf.Ticker(ticker)
+        t = yf.Ticker(t)
         news = (t.news or [])[:limit]
         results = []
         for n in news:
@@ -164,8 +163,7 @@ def fetch_yf_company(ticker: str, limit: int = 3):
 # ---------- Gemini Summarization ----------
 def summarize_article_gemini(title: str, description: str) -> str:
     if not title or title.lower() == "no title":
-        return ""  # skip invalid ones
-
+        return ""
     clean_title = strip_html(title)
     clean_desc = strip_html(description)
     title_only = (
@@ -230,8 +228,6 @@ def render_news_section():
             st.info("No recent market news found.")
         else:
             for a in articles:
-                if not is_valid_article(a):
-                    continue
                 title = a["title"]
                 url = a.get("url") or "#"
                 source = a.get("source", {}).get("name", "Unknown Source")
@@ -243,7 +239,6 @@ def render_news_section():
                     except Exception:
                         pass
                 summary = summarize_article_gemini(title, a.get("description", ""))
-
                 with st.container():
                     st.markdown(f"#### [{title}]({url})")
                     st.caption(f"🕓 {published_str} | 🏢 {source}")
@@ -274,7 +269,10 @@ def render_news_section():
                         or fetch_newsdata(s["name"], limit=1)
                         or fetch_yf_company(s["ticker"], limit=1)
                     )
-                    all_articles.extend([n for n in news if is_valid_article(n)])
+                    for n in news:
+                        if is_valid_article(n):
+                            n["company"] = s["name"]
+                            all_articles.append(n)
                     if len(all_articles) >= 5:
                         break
                     time.sleep(0.3)
@@ -294,11 +292,10 @@ def render_news_section():
             return
 
         for a in articles:
-            if not is_valid_article(a):
-                continue
             title = a["title"]
             url = a.get("url") or "#"
             source = a.get("source", {}).get("name", "Unknown Source")
+            company = a.get("company", "")
             published_str = "Unknown date"
             if a.get("publishedAt"):
                 try:
@@ -307,7 +304,7 @@ def render_news_section():
                 except Exception:
                     pass
             summary = summarize_article_gemini(title, a.get("description", ""))
-            tag = f" ({a.get('company')})" if a.get("company") else ""
+            tag = f" ({company})" if company else ""
 
             with st.container():
                 st.markdown(f"#### [{title}]({url}){tag}")
