@@ -146,9 +146,14 @@ def fetch_yf_company(ticker, limit=3):
         return []
 
 # ---------- Portfolio fetching ----------
-@st.cache_data(ttl=86400)
+@st.cache_data(ttl=600)
 def get_portfolio_stocks():
-    """Get full names only for new tickers."""
+    """
+    Fetch tickers from Supabase and map to readable names.
+    - Uses static map first
+    - Falls back to yfinance, then regex cleanup
+    - Filters out junk strings like ISINs or numbers
+    """
     try:
         res = supabase_analyst.table("analyst_stock_watchlist").select("ticker").execute()
         if not res.data:
@@ -157,15 +162,38 @@ def get_portfolio_stocks():
         companies = []
         for row in res.data:
             ticker = row["ticker"]
+
+            # --- Static map first ---
             if ticker in TICKER_NAME_MAP:
                 name = TICKER_NAME_MAP[ticker]
             else:
+                # Try yfinance for metadata
                 try:
-                    name = yf.Ticker(ticker).fast_info.get("shortName", ticker)
+                    t = yf.Ticker(ticker)
+                    info = getattr(t, "info", {}) or {}
+                    name = info.get("shortName") or info.get("longName")
                 except Exception:
-                    name = re.sub(r"\.[A-Z]+$", "", ticker).upper()
+                    name = None
+
+                # Clean or replace invalid names
+                if not name or re.search(r"[0-9,]|OP|ISIN", str(name)):
+                    clean = re.sub(r"\.[A-Z]+$", "", ticker)
+                    name = (
+                        "Biocartis" if "BCART" in clean.upper()
+                        else clean.capitalize()
+                    )
+
+                # Remove suffixes and tidy
+                name = re.sub(r"\b(S\.?A\.?|N\.?V\.?|SE|Inc\.?|Corp\.?|SCA|PLC|AG|Ltd\.?|LLC)\b", "", name, flags=re.IGNORECASE)
+                name = re.sub(r"\s+", " ", name).strip()
+
+                # Cache for reuse
+                TICKER_NAME_MAP[ticker] = name
+
             companies.append({"ticker": ticker, "name": name})
+
         return sorted(companies, key=lambda x: x["name"].lower())
+
     except Exception as e:
         st.error(f"Error fetching portfolio stocks: {e}")
         return []
