@@ -4,3 +4,7 @@ supabase
 pandas
 postgrest
 email-validator
+google-generativeai==0.6.0
+yfinance==0.2.43
+feedparser==6.0.11
+requests==2.32.3
