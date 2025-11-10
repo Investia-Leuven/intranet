@@ -3,8 +3,9 @@
 import streamlit as st
 import secrets, string
 import time
+import pandas as pd
 
-from lib.db import get_member_by_username, update_username, update_email, update_password, list_members, delete_member, update_is_admin, create_member
+from lib.db import get_member_by_username, update_username, update_email, update_password, list_members, delete_member, update_is_admin, update_is_board, create_member, list_board_members, list_admin_members
 from lib.backend import Member, generate_reset_code
 from lib.send_email import send_email
 
@@ -116,6 +117,8 @@ def render_settings_page():
                         st.warning(f"User created but failed to send email: {e}")
 
         st.subheader("Manage users")
+
+
         members = list_members()
         options = {m["name"]: m["username"] for m in members if m["username"] != st.session_state.username}
         selected_name = st.selectbox("Select user to manage", [""] + list(options.keys()))
@@ -123,11 +126,14 @@ def render_settings_page():
             selected_manage_user = options[selected_name]
             user_obj = get_member_by_username(selected_manage_user)
             admin_status = st.checkbox("Admin", value=user_obj.is_admin, key=f"admin_{selected_manage_user}")
+            board_status = st.checkbox("Board member", value=getattr(user_obj, "is_board", False), key=f"board_{selected_manage_user}")
             col1, col2 = st.columns(2)
             with col1:
                 if st.button("Update role", key=f"update_role_{selected_manage_user}"):
-                    update_is_admin(selected_manage_user, admin_status)  # Update admin status in DB
-                    st.success("User role updated.")
+                    update_is_admin(selected_manage_user, admin_status)
+                    if hasattr(user_obj, "is_board"):
+                        update_is_board(selected_manage_user, board_status)
+                    st.success("User roles updated.")
                     st.rerun()
             with col2:
                 if st.button("Delete user", key=f"delete_{selected_manage_user}"):
@@ -135,6 +141,22 @@ def render_settings_page():
                     st.success("User deleted.")
                     st.rerun()
 
+        # Show quick overview tables for Board members and Admin users
+        board_rows = list_board_members()
+        admin_rows = list_admin_members()
+
+        # Keep only compact, relevant columns
+        board_df = pd.DataFrame(board_rows)[[c for c in ["name", "username", "email"] if c in (board_rows[0].keys() if board_rows else [])]]
+        admin_df = pd.DataFrame(admin_rows)[[c for c in ["name", "username", "email"] if c in (admin_rows[0].keys() if admin_rows else [])]]
+
+        col_a, col_b = st.columns(2)
+        with col_a:
+            st.caption("Board members")
+            st.dataframe(board_df, use_container_width=True, hide_index=True)
+        with col_b:
+            st.caption("Admin users")
+            st.dataframe(admin_df, use_container_width=True, hide_index=True)
+            
     # ================== Return to homepage ==================
     st.markdown("---")
     if st.button("Return to homepage"):

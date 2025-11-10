@@ -26,14 +26,15 @@ def generate_reset_code() -> str:
 class Member:
     """
     Represents a user/member with authentication details.
-    Encapsulates username, name, email, admin status, password hash,
+    Encapsulates username, name, email, admin status, board status, password hash,
     and reset code management.
     """
-    def __init__(self, username: str, name: str, email: str, is_admin: bool, password_hash: str, reset_code: Optional[str] = None, generate_reset: bool = False):
+    def __init__(self, username: str, name: str, email: str, is_admin: bool, is_board: bool, password_hash: str, reset_code: Optional[str] = None, generate_reset: bool = False):
         self._username = username
         self._name = name
         self._email = email
         self._is_admin = is_admin
+        self._is_board = is_board
         self._password_hash = password_hash
         # Initialize reset code either from given code or generate a new one if requested
         if reset_code is not None:
@@ -62,6 +63,11 @@ class Member:
     def is_admin(self):
         """Return True if the user has admin privileges, else False."""
         return self._is_admin
+
+    @property
+    def is_board(self):
+        """Return True if the user is a board member, else False."""
+        return self._is_board
 
     @property
     def reset_code(self) -> Optional[str]:
