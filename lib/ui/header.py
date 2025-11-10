@@ -3,7 +3,7 @@ UI component: Header
 """
 
 import streamlit as st
-
+from lib.cookies import clear_auth_cookie
 
 def render_header():
     """Render the app header with logo, title, and logout button."""
@@ -51,5 +51,6 @@ def render_header():
                 st.session_state.page = "settings"; st.rerun()
         with colB:
             if st.button("Logout", use_container_width=True):
+                clear_auth_cookie()
                 st.session_state.authenticated = False
                 st.rerun()
