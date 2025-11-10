@@ -2,3 +2,5 @@ __pycache__/
 .venv/
 *.pyc
 .env
+lib/ui/__pycache__
+lib/__pycache__

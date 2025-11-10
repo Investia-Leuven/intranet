@@ -80,7 +80,7 @@ def get_member_by_username(username: str) -> Optional[Member]:
     # Query the authentication table for the username
     resp = (
         supabase.table("authentication")
-        .select("username, name, email, is_admin, password, reset_code")
+        .select("username, name, email, is_admin, is_board, password, reset_code")
         .eq("username", username)
         .execute()
     )
@@ -97,6 +97,7 @@ def get_member_by_username(username: str) -> Optional[Member]:
         name=record["name"],
         email=record["email"],
         is_admin=record["is_admin"],
+        is_board=record.get("is_board", False),
         password_hash=record["password"],
         reset_code=record.get("reset_code"),
     )
@@ -111,7 +112,7 @@ def get_member_by_full_name(full_name: str) -> Optional[Member]:
     # Query the authentication table for the full name
     resp = (
         supabase.table("authentication")
-        .select("username, name, email, is_admin, password, reset_code")
+        .select("username, name, email, is_admin, is_board, password, reset_code")
         .eq("name", full_name)
         .execute()
     )
@@ -128,6 +129,7 @@ def get_member_by_full_name(full_name: str) -> Optional[Member]:
         name=record["name"],
         email=record["email"],
         is_admin=record["is_admin"],
+        is_board=record.get("is_board", False),
         password_hash=record["password"],
         reset_code=record.get("reset_code"),
     )
@@ -213,6 +215,19 @@ def update_is_admin(username: str, is_admin: bool) -> bool:
     )
     return resp.data is not None
 
+def update_is_board(username: str, is_board: bool) -> bool:
+    """
+    Update the board member flag for a user.
+    Returns True if the update succeeded.
+    """
+    resp = (
+        supabase.table("authentication")
+        .update({"is_board": is_board})
+        .eq("username", username)
+        .execute()
+    )
+    return resp.data is not None
+
 
 def create_member(username: str, name: str, email: str, is_admin: bool, password_hash: str, reset_code: str) -> bool:
     """
@@ -227,6 +242,7 @@ def create_member(username: str, name: str, email: str, is_admin: bool, password
             "name": name,
             "email": email,
             "is_admin": is_admin,
+            "is_board": False,
             "password": password_hash,
             "reset_code": reset_code
         })
@@ -257,7 +273,7 @@ def list_members():
     # Retrieve all members ordered by name
     resp = (
         supabase.table("authentication")
-        .select("username, name, email, is_admin, reset_code")
+        .select("username, name, email, is_admin, is_board, reset_code")
         .order("name")
         .execute()
     )
@@ -271,8 +287,37 @@ def find_members_by_name_like(q: str):
     # Search for members with names containing the query string (case-insensitive)
     resp = (
         supabase.table("authentication")
-        .select("username, name, email, is_admin, reset_code")
+        .select("username, name, email, is_admin, is_board, reset_code")
         .ilike("name", f"%{q}%")
+        .order("name")
+        .execute()
+    )
+    return resp.data or []
+
+
+def list_board_members():
+    """
+    Return a list of all board members with their basic info.
+    """
+    resp = (
+        supabase.table("authentication")
+        .select("username, name, email, is_admin, is_board, reset_code")
+        .eq("is_board", True)
+        .order("name")
+        .execute()
+    )
+    return resp.data or []
+
+
+# --- Admin members helper function ---
+def list_admin_members():
+    """
+    Return a list of all admin members with their basic info.
+    """
+    resp = (
+        supabase.table("authentication")
+        .select("username, name, email, is_admin, is_board, reset_code")
+        .eq("is_admin", True)
         .order("name")
         .execute()
     )

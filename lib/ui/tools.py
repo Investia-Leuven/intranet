@@ -31,7 +31,16 @@ def render_internal_tools_section():
     st.markdown("⚠️ *Some tools are hosted on free platforms and may take a minute to load when waking up. This saves us €90/year per tool. Please wait patiently and reload the site if nothing happens.*")
     
     buttons_html = ""
-    for label, icon, url in TOOL_LINKS:
+    for item in TOOL_LINKS:
+        # Support both legacy 3-tuple and new 4-tuple (requires_board) entries
+        if len(item) == 3:
+            label, icon, url = item
+            requires_board = False
+        else:
+            label, icon, url, requires_board = item
+        # Skip tools that require board privileges if the user isn't a board member
+        if requires_board and not st.session_state.get("is_board", False):
+            continue
         buttons_html += render_tool_button(label, icon, url)
 
     st.markdown(f"""

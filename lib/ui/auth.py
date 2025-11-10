@@ -9,6 +9,11 @@ from dotenv import load_dotenv
 import streamlit as st
 from lib.send_email import send_reset_email
 import time
+import logging
+from lib.cookies import restore_session_from_cookie, write_login_cookie
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def login_screen():
     """
@@ -27,6 +32,13 @@ def login_screen():
     # Initialise authentication flag in session state
     if "authenticated" not in st.session_state:
         st.session_state.authenticated = False
+    if "is_board" not in st.session_state:
+        st.session_state.is_board = False
+
+    # Try automatic login from cookie (24h validity)
+    if not st.session_state.authenticated:
+        if restore_session_from_cookie():
+            st.rerun()
 
     # If user is not authenticated, proceed with login or password reset flow
     if not st.session_state.authenticated:
@@ -44,6 +56,9 @@ def login_screen():
                     st.session_state.username = member.username
                     st.session_state.display_name = member.name
                     st.session_state.is_admin = member.is_admin
+                    st.session_state.is_board = member.is_board
+                    # Persist session via cookie for 24 hours
+                    write_login_cookie(member.username)
                     st.rerun()
                 else:
                     # Invalid credentials: show error message
