@@ -146,8 +146,8 @@ def render_settings_page():
         admin_rows = list_admin_members()
 
         # Keep only compact, relevant columns
-        board_df = pd.DataFrame(board_rows)[[c for c in ["name", "username", "email"] if c in (board_rows[0].keys() if board_rows else [])]]
-        admin_df = pd.DataFrame(admin_rows)[[c for c in ["name", "username", "email"] if c in (admin_rows[0].keys() if admin_rows else [])]]
+        board_df = pd.DataFrame(board_rows)[[c for c in ["name"] if c in (board_rows[0].keys() if board_rows else [])]]
+        admin_df = pd.DataFrame(admin_rows)[[c for c in ["name"] if c in (admin_rows[0].keys() if admin_rows else [])]]
 
         col_a, col_b = st.columns(2)
         with col_a:
