@@ -14,6 +14,7 @@ from lib.ui.tools import render_internal_tools_section
 from lib.ui.calendar import render_calendar_section
 from lib.ui.announcements import render_announcement_section
 from lib.ui.news import render_news_section
+from lib.ui.amountsdue import render_amounts_due_banner
 from lib.ui.settings import render_settings_page
 from lib.cookies import restore_session_from_cookie, clear_auth_cookie
 from extra_streamlit_components import CookieManager
@@ -76,6 +77,9 @@ def main():
         f"<p style='color:darkblue;'>Welcome {username} on Investia's intranet. From this page you can navigate to all internal digital tools.</p>",
         unsafe_allow_html=True
     )
+
+    # Amounts Due banner (shows a red box if the logged-in member owes money)
+    render_amounts_due_banner()
 
     render_internal_tools_section()
 

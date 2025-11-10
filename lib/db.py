@@ -322,3 +322,25 @@ def list_admin_members():
         .execute()
     )
     return resp.data or []
+
+
+# ====================== Amounts Due ======================
+
+def list_member_amounts_due(username: str):
+    """
+    Return all outstanding amounts due for the specified member.
+
+    Fetches from the 'amounts_due' table all records where member_username matches the given username.
+    Each record includes at least: amount, due_date, and note.
+    """
+    if not username:
+        return []
+
+    resp = (
+        supabase.table("amounts_due")
+        .select("amount, due_date, note")
+        .eq("member_username", username)
+        .order("due_date")
+        .execute()
+    )
+    return resp.data or []

@@ -43,11 +43,13 @@ def login_screen():
     # If user is not authenticated, proceed with login or password reset flow
     if not st.session_state.authenticated:
         if st.session_state.reset_step == "login":
-            # LOGIN STEP: Display login form to enter username and password
-            st.title("Login")
-            username = st.text_input("Username")
-            password = st.text_input("Password", type="password")
-            if st.button("Login"):
+            with st.form("login_form"):
+                st.title("Login")
+                username = st.text_input("Username")
+                password = st.text_input("Password", type="password")
+                submitted = st.form_submit_button("Login")
+
+            if submitted:
                 # Retrieve member by username and verify password
                 member = get_member_by_username(username)
                 if member and member.check_password(password):
