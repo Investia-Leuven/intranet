@@ -47,10 +47,10 @@ def render_header():
     with col3:
         colA, colB = st.columns([1,1])
         with colA:
-            if st.button("Settings"): 
+            if st.button("⚙️", use_container_width=True): 
                 st.session_state.page = "settings"; st.rerun()
         with colB:
-            if st.button("Logout", use_container_width=True):
+            if st.button("➜]", use_container_width=True):
                 clear_auth_cookie()
                 st.session_state.authenticated = False
                 st.rerun()
