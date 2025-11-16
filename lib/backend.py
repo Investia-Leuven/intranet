@@ -29,7 +29,7 @@ class Member:
     Encapsulates username, name, email, admin status, board status, password hash,
     and reset code management.
     """
-    def __init__(self, username: str, name: str, email: str, is_admin: bool, is_board: bool, password_hash: str, reset_code: Optional[str] = None, generate_reset: bool = False):
+    def __init__(self, username: str, name: str, email: str, is_admin: bool, is_board: bool = False, password_hash: str = "", reset_code: Optional[str] = None, generate_reset: bool = False):
         self._username = username
         self._name = name
         self._email = email

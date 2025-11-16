@@ -74,6 +74,7 @@ def render_settings_page():
             new_name = st.text_input("Full name")
             new_email = st.text_input("Email")
             is_admin = st.checkbox("Admin privileges", value=False)
+            is_board = st.checkbox("Board member", value=False)
             create_btn = st.form_submit_button("Create user")
             if create_btn:
                 if not new_name or not new_email:
@@ -91,12 +92,12 @@ def render_settings_page():
                     alphabet = string.ascii_letters + string.digits
                     password = ''.join(secrets.choice(alphabet) for _ in range(12))
                     # Create a temporary Member object to hash the password
-                    temp_member = Member(username=username, name=new_name, email=new_email, is_admin=is_admin, password_hash="")
+                    temp_member = Member(username=username, name=new_name, email=new_email, is_admin=is_admin, is_board=is_board, password_hash="")
                     hashed_pw = temp_member.set_password(password)
                     reset_code = generate_reset_code()
 
                     # Create the user in the database with hashed password and reset code
-                    create_member(username, new_name, new_email, is_admin, hashed_pw, reset_code)
+                    create_member(username, new_name, new_email, is_admin, is_board, hashed_pw, reset_code)
                     # Send welcome email with credentials and reset code
                     try:
                         send_email(
@@ -108,7 +109,8 @@ def render_settings_page():
                                 <p><b>Username:</b> {username}<br>
                                 <b>Password:</b> {password}<br>
                                 <b>Reset code:</b> {reset_code}</p>
-                                <p>Please log in and change your password. You can login via the 'FUND' button on the Investia Leuven website.</p>
+                                <p>Please log in and change your password. You can login via the 'FUND' button on the Investia Leuven website or using the link in this email.</p>
+                                <p>Login link: https://intranet.investialeuven.be/</p>
                                 <p>Enjoy your digital experience!</p>
                                 <p>Kind regards,<br/>Investia</p>
                             """)
