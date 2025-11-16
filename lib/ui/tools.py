@@ -39,7 +39,7 @@ def render_internal_tools_section():
         else:
             label, icon, url, requires_board = item
         # Skip tools that require board privileges if the user isn't a board member
-        if requires_board and not st.session_state.get("is_board", False):
+        if requires_board and not (st.session_state.get("is_board", False) or st.session_state.get("is_admin", False)):
             continue
         buttons_html += render_tool_button(label, icon, url)
 

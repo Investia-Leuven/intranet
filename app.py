@@ -13,7 +13,7 @@ from lib.ui.footer import render_footer
 from lib.ui.tools import render_internal_tools_section
 from lib.ui.calendar import render_calendar_section
 from lib.ui.announcements import render_announcement_section
-from lib.ui.news import render_news_section
+from lib.ui.news import render_news_section # Currently disabled MUST BE FIXED!!!!
 from lib.ui.amountsdue import render_amounts_due_banner
 from lib.ui.settings import render_settings_page
 from lib.cookies import restore_session_from_cookie, clear_auth_cookie
@@ -89,7 +89,7 @@ def main():
     with col2:
         render_announcement_section()
 
-    render_news_section()
+    render_news_section() # Currently disabled MUST BE FIXED!!!!
     
     render_footer()
 

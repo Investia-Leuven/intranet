@@ -229,7 +229,7 @@ def update_is_board(username: str, is_board: bool) -> bool:
     return resp.data is not None
 
 
-def create_member(username: str, name: str, email: str, is_admin: bool, password_hash: str, reset_code: str) -> bool:
+def create_member(username: str, name: str, email: str, is_admin: bool, is_board: bool, password_hash: str, reset_code: str) -> bool:
     """
     Create a new user in the authentication table.
     Returns True if the insertion succeeded.
@@ -242,7 +242,7 @@ def create_member(username: str, name: str, email: str, is_admin: bool, password
             "name": name,
             "email": email,
             "is_admin": is_admin,
-            "is_board": False,
+            "is_board": is_board,
             "password": password_hash,
             "reset_code": reset_code
         })
