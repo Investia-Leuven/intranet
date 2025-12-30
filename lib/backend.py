@@ -29,13 +29,15 @@ class Member:
     Encapsulates username, name, email, admin status, board status, password hash,
     and reset code management.
     """
-    def __init__(self, username: str, name: str, email: str, is_admin: bool, is_board: bool = False, password_hash: str = "", reset_code: Optional[str] = None, generate_reset: bool = False):
+    def __init__(self, username: str, name: str, email: str, is_admin: bool, is_board: bool = False, password_hash: str = "", reset_code: Optional[str] = None, generate_reset: bool = False, iban: Optional[str] = None, address: Optional[str] = None):
         self._username = username
         self._name = name
         self._email = email
         self._is_admin = is_admin
         self._is_board = is_board
         self._password_hash = password_hash
+        self._iban = iban
+        self._address = address
         # Initialize reset code either from given code or generate a new one if requested
         if reset_code is not None:
             self._reset_code = reset_code
@@ -78,6 +80,16 @@ class Member:
     def password_hash(self):
         """Return the stored password hash."""
         return self._password_hash
+
+    @property
+    def iban(self):
+        """Return the user's IBAN."""
+        return self._iban
+
+    @property
+    def address(self):
+        """Return the user's address (JSON string)."""
+        return self._address
 
 
     def check_password(self, plain_password: str) -> bool:

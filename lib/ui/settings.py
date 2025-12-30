@@ -4,8 +4,10 @@ import streamlit as st
 import secrets, string
 import time
 import pandas as pd
+import io
 
-from lib.db import get_member_by_username, update_username, update_email, update_password, list_members, delete_member, update_is_admin, update_is_board, create_member, list_board_members, list_admin_members
+import json
+from lib.db import get_member_by_username, update_member_profile, list_members, delete_member, update_is_admin, update_is_board, create_member, list_board_members, list_admin_members
 from lib.backend import Member, generate_reset_code
 from lib.send_email import send_email
 
@@ -14,45 +16,109 @@ def render_settings_page():
 
     # ================== Profile Section ==================
     member = get_member_by_username(st.session_state.username)
+    
+    # Parse existing address if present
+    addr_dict = {}
+    if member.address:
+        try:
+            addr_dict = json.loads(member.address)
+        except json.JSONDecodeError:
+            pass
+            
     st.subheader("Profile")
     with st.form("profile_form"):
-        name = st.text_input("Full name", value=member.name, disabled=True)
-        nickname = st.text_input("Nickname (username)", value=member.username)
-        email = st.text_input("Email", value=member.email)
-        new_password = st.text_input("New password", type="password")
-        confirm_password = st.text_input("Confirm new password", type="password")
+        col_basic_1, col_basic_2 = st.columns(2)
+        with col_basic_1:
+            name = st.text_input("Full name", value=member.name, disabled=True)
+            nickname = st.text_input("Nickname (username)", value=member.username)
+        with col_basic_2:
+            email = st.text_input("Email", value=member.email)
+            iban = "".join(st.text_input("IBAN", value=member.iban or "").split())
+
+        st.caption("Address")
+        col_addr_1, col_addr_2 = st.columns(2)
+        with col_addr_1:
+            street = st.text_input("Street & Number", value=addr_dict.get("street", ""))
+            postal_code = st.text_input("Postal Code", value=addr_dict.get("postal_code", ""))
+            country = st.text_input("Country", value=addr_dict.get("country", ""))
+        with col_addr_2:
+            city = st.text_input("City", value=addr_dict.get("city", ""))
+            province = st.text_input("Province", value=addr_dict.get("province", ""))
+
+        st.caption("Security")
+        col_pwd_1, col_pwd_2 = st.columns(2)
+        with col_pwd_1:
+            new_password = st.text_input("New password", type="password")
+        with col_pwd_2:
+            confirm_password = st.text_input("Confirm new password", type="password")
+
         save_changes = st.form_submit_button("Save changes")
+        
         if save_changes:
-            updated = False
-            # Update nickname/username if changed and not taken
+            updates = {}
+            error_msg = None
+
+            # 1. Validate Username
             if nickname != member.username:
-                existing = get_member_by_username(nickname)
-                if existing:
-                    st.error("That username is already taken.")
+                if not nickname:
+                     error_msg = "Username cannot be empty."
                 else:
-                    update_username(member.username, nickname)  # Update username in DB
-                    st.session_state.username = nickname  # Update session username
-                    updated = True
-                    st.success("Username updated.")
-            # Update email if changed
+                    existing = get_member_by_username(nickname)
+                    if existing:
+                        error_msg = "That username is already taken."
+                    else:
+                        updates["username"] = nickname
+
+            # 2. Add other fields
             if email != member.email:
-                update_email(nickname, email)  # Update email in DB
-                updated = True
-                st.success("Email updated.")
-            # Update password if provided and valid
+                updates["email"] = email
+            
+            if iban != (member.iban or ""):
+                updates["iban"] = iban.replace(" ", "")
+
+            # 3. Serialize Address
+            new_addr_dict = {
+                "street": street,
+                "city": city,
+                "postal_code": postal_code,
+                "province": province,
+                "country": country
+            }
+            # Only save if at least one field is filled, or if clearing previous data
+            # Simplest approach: always save the structured dict, even if empty values
+            new_addr_json = json.dumps(new_addr_dict)
+            if new_addr_json != member.address:
+                updates["address"] = new_addr_json
+
+            # 4. Password validation
             if new_password or confirm_password:
                 if new_password != confirm_password:
-                    st.error("Passwords do not match.")
+                    error_msg = "Passwords do not match."
                 elif not new_password:
-                    st.error("Password cannot be empty.")
+                    error_msg = "Password cannot be empty."
                 else:
-                    member.set_password(new_password)  # Hash new password
-                    update_password(nickname, member.password_hash)  # Update password in DB
-                    updated = True
-                    st.success("Password updated.")
-                    time.sleep(2)  # Pause briefly after password change
-            if updated:
-                st.rerun()  # Refresh page to reflect updates
+                    # Hash the new password using the Member method (assuming we have access or can create temp)
+                    # We can use the existing member instance to hash
+                    updates["password_hash"] = member.set_password(new_password)
+
+            if error_msg:
+                st.error(error_msg)
+            elif not updates:
+                st.info("No changes to save.")
+            else:
+                # Perform the update in one go
+                success = update_member_profile(member.username, updates)
+                
+                if success:
+                    # ONLY update session state if DB update succeeded
+                    if "username" in updates:
+                        st.session_state.username = updates["username"]
+                    
+                    st.success("Profile updated successfully!")
+                    time.sleep(1)
+                    st.rerun()
+                else:
+                    st.error("Failed to update profile. Please try again.")
 
     # ================== Admin Section ==================
     if st.session_state.get("is_admin"):
@@ -119,8 +185,6 @@ def render_settings_page():
                         st.warning(f"User created but failed to send email: {e}")
 
         st.subheader("Manage users")
-
-
         members = list_members()
         options = {m["name"]: m["username"] for m in members if m["username"] != st.session_state.username}
         selected_name = st.selectbox("Select user to manage", [""] + list(options.keys()))
@@ -159,6 +223,53 @@ def render_settings_page():
             st.caption("Admin users")
             st.dataframe(admin_df, use_container_width=True, hide_index=True)
             
+        if st.session_state.get("is_admin") or st.session_state.get("is_board", False):
+            st.divider()
+            st.subheader("Export member data")
+            members = list_members()
+            
+            # --- Excel Export ---
+            st.caption("Download all member data")
+            export_data = []
+            for m in members:
+                # Parse address
+                addr_str = ""
+                if m.get("address"):
+                    try:
+                        ad = json.loads(m["address"])
+                        parts = [
+                            ad.get("street"), 
+                            ad.get("city"), 
+                            ad.get("postal_code"), 
+                            ad.get("country")
+                        ]
+                        # Filter out empty parts
+                        addr_str = ", ".join([p for p in parts if p])
+                    except:
+                        addr_str = m["address"] # Fallback
+                
+                export_data.append({
+                    "Name": m["name"],
+                    "Email": m["email"],
+                    "IBAN": m.get("iban", ""),
+                    "Address": addr_str,
+                    "Username": m["username"] # Added for completeness
+                })
+            
+            df_export = pd.DataFrame(export_data)
+            
+            # Convert to Excel
+            buffer = io.BytesIO()
+            with pd.ExcelWriter(buffer, engine='xlsxwriter') as writer:
+                df_export.to_excel(writer, index=False, sheet_name='Members')
+            
+            st.download_button(
+                label="Download member data (Excel)",
+                data=buffer.getvalue(),
+                file_name=f"investia_members_{time.strftime('%Y%m%d')}.xlsx",
+                mime="application/vnd.ms-excel"
+            )
+
     # ================== Return to homepage ==================
     st.markdown("---")
     if st.button("Return to homepage"):

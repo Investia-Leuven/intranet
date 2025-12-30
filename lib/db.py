@@ -80,7 +80,7 @@ def get_member_by_username(username: str) -> Optional[Member]:
     # Query the authentication table for the username
     resp = (
         supabase.table("authentication")
-        .select("username, name, email, is_admin, is_board, password, reset_code")
+        .select("username, name, email, is_admin, is_board, password, reset_code, iban, address")
         .eq("username", username)
         .execute()
     )
@@ -100,6 +100,8 @@ def get_member_by_username(username: str) -> Optional[Member]:
         is_board=record.get("is_board", False),
         password_hash=record["password"],
         reset_code=record.get("reset_code"),
+        iban=record.get("iban"),
+        address=record.get("address"),
     )
 
 def get_member_by_full_name(full_name: str) -> Optional[Member]:
@@ -112,7 +114,7 @@ def get_member_by_full_name(full_name: str) -> Optional[Member]:
     # Query the authentication table for the full name
     resp = (
         supabase.table("authentication")
-        .select("username, name, email, is_admin, is_board, password, reset_code")
+        .select("username, name, email, is_admin, is_board, password, reset_code, iban, address")
         .eq("name", full_name)
         .execute()
     )
@@ -132,6 +134,8 @@ def get_member_by_full_name(full_name: str) -> Optional[Member]:
         is_board=record.get("is_board", False),
         password_hash=record["password"],
         reset_code=record.get("reset_code"),
+        iban=record.get("iban"),
+        address=record.get("address"),
     )
 
 
@@ -229,6 +233,39 @@ def update_is_board(username: str, is_board: bool) -> bool:
     return resp.data is not None
 
 
+def update_member_profile(current_username: str, updates: dict) -> bool:
+    """
+    Update member profile fields in a single transaction.
+    
+    Args:
+        current_username: The username of the member to update (used for lookup).
+        updates: A dictionary of fields to update. keys can be:
+                 username, email, iban, address, password
+    
+    Returns:
+        True if the update succeeded, False otherwise.
+    """
+    # If username is changing, we still query by the OLD username
+    # The 'updates' dict will contain the NEW username if it's being changed.
+    
+    # Filter out empty updates if necessary, or let implicit None handling work
+    # Supabase update will ignore keys not present in the dict if we just pass `updates`?
+    # No, we should construct the payload explicitly to avoid accidental overwrites of unrelated fields if we were passing a larger dict.
+    # But here we pass exactly what we want to update.
+    
+    # Map 'password_hash' key back to 'password' column if present
+    if "password_hash" in updates:
+        updates["password"] = updates.pop("password_hash")
+        
+    resp = (
+        supabase.table("authentication")
+        .update(updates)
+        .eq("username", current_username)
+        .execute()
+    )
+    return resp.data is not None
+
+
 def create_member(username: str, name: str, email: str, is_admin: bool, is_board: bool, password_hash: str, reset_code: str) -> bool:
     """
     Create a new user in the authentication table.
@@ -273,7 +310,7 @@ def list_members():
     # Retrieve all members ordered by name
     resp = (
         supabase.table("authentication")
-        .select("username, name, email, is_admin, is_board, reset_code")
+        .select("username, name, email, is_admin, is_board, reset_code, iban, address")
         .order("name")
         .execute()
     )
