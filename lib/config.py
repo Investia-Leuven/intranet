@@ -11,15 +11,15 @@ CALENDAR_URL_AGENDA = (
 )
 
 # TOOL_LINKS structure:
-#   (label: str, icon: str, url: str, requires_board: bool)
+#   (label: str, icon: str, url: str, requires_board: bool, is_maintenance: bool)
 # The last boolean controls privileges. When True, the tool is only visible to board members.
-# Keep it False for tools available to everyone.
+# is_maintenance: When True, the tool is disabled and shows a warning on click.
 TOOL_LINKS = [
-    ("Member platform", "📊", "https://fund.investialeuven.be", False),
-    ("Member Drive", "📂", "https://drive.google.com/drive/folders/1VfsWiHpd1oS8lM5YK4j2ik-3WPiuvNWV?usp=share_link", False),
-    ("Industry scanner", "🔍", "https://industry.streamlit.app", False),
-    ("Stock alert", "📈", "https://analyst-investia.streamlit.app", False),
-    ("Investia website", "🌐", "https://investialeuven.be", False),
-    ("Treasurer budget", "💲", "https://accounting-investia.streamlit.app", True),
-    ("Board Drive", "🗂️", "https://drive.google.com/drive/folders/1qDib9GwZFp17yHZJVj0UGgY9iD5OxrOF?usp=share_link", True)
+    ("Member platform", "📊", "https://fund.investialeuven.be", False, False),
+    ("Member Drive", "📂", "https://drive.google.com/drive/folders/1VfsWiHpd1oS8lM5YK4j2ik-3WPiuvNWV?usp=share_link", False, False),
+    ("Industry scanner", "🔍", "https://industry.streamlit.app", False, True),
+    ("Stock alert", "📈", "https://analyst-investia.streamlit.app", False, False),
+    ("Investia website", "🌐", "https://investialeuven.be", False, False),
+    ("Treasurer budget", "💲", "https://accounting-investia.streamlit.app", True, False),
+    ("Board Drive", "🗂️", "https://drive.google.com/drive/folders/1qDib9GwZFp17yHZJVj0UGgY9iD5OxrOF?usp=share_link", True, False)
 ]
