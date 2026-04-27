@@ -17,9 +17,9 @@ CALENDAR_URL_AGENDA = (
 TOOL_LINKS = [
     ("Member platform", "📊", "https://fund.investialeuven.be", False),
     ("Member Drive", "📂", "https://drive.google.com/drive/folders/1VfsWiHpd1oS8lM5YK4j2ik-3WPiuvNWV?usp=share_link", False),
-    ("Industry scanner", "🔍", "https://industry.streamlit.app", False),
-    # ("Stock alert", "📈", "https://analyst-investia.streamlit.app", False),
-    ("Stock alert - UNAVAILABLE", "📈", "#", False),
+    # ("Industry scanner", "🔍", "https://industry.streamlit.app", False),
+    ("Industry scanner - UNAVAILABLE", "🔍", "#", False),
+    ("Stock alert", "📈", "https://analyst-investia.streamlit.app", False),
     ("Investia website", "🌐", "https://investialeuven.be", False),
     ("Treasurer budget", "💲", "https://accounting-investia.streamlit.app", True),
     ("Board Drive", "🗂️", "https://drive.google.com/drive/folders/1qDib9GwZFp17yHZJVj0UGgY9iD5OxrOF?usp=share_link", True)
