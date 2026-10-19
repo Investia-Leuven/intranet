@@ -22,6 +22,6 @@ TOOL_LINKS = [
     ("Stock alert", "📈", "https://analyst-investia.streamlit.app", False),
     ("Investia website", "🌐", "https://investialeuven.be", False),
     ("Treasurer budget", "💲", "https://accounting-investia.streamlit.app", True),
-    ("Board Drive", "🗂️", "https://drive.google.com/drive/folders/1qDib9GwZFp17yHZJVj0UGgY9iD5OxrOF?usp=share_link", True)
+    ("Board Drive", "🗂️", "https://drive.google.com/drive/folders/1qDib9GwZFp17yHZJVj0UGgY9iD5OxrOF?usp=share_link", True),
     ("Admin member fund", "💻", "https://member-fund-db.streamlit.app", True)
 ]
